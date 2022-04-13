@@ -67,7 +67,14 @@ For representing this in a computer here are the following approaches:
 - Hence the pairs are (1,1) (2,2), (3,4), (4,8), (5,16), (6,32), (7,64), (8,128), (9,256)
 - And a set of {1,6,7} would correspond to a 32-bit bitstring of 0x000000C1 in HEX
 - And a set of {1,2,3} would correspond to a 32-bit bitstring of 0x00000007 in HEX
-- 
+- For checking if a number exists on a set, performing an AND on the number pair and the set suffices
+- Performing logical AND from the HEX 0x00000007 of set {1,2,3} and 0x00000001 of the element 1 gives the hex of the element
+- These are certainly greater than zero which means the element is already present in the set, which implies the rules are violated
+- To shorten these instructions, perform a logical OR to all three sets and its result must perform a logical AND to the element 
+- Again, if the result of the logical operations is a HEX number greater than zero, the rules are violated 
+- If the result is zero, then the rules are enforced, continue 
+- For the display, note that in ascii, numbers start from 48 as 0, 49 as 1, and 57 as 9
+- So during the algorithm the numbers in display must be replaced often 
       
 
 
