@@ -75,7 +75,13 @@ For representing this in a computer here are the following approaches:
 - If the result is zero, then the rules are enforced, continue 
 - For the display, note that in ascii, numbers start from 48 as 0, 49 as 1, and 57 as 9
 - So during the algorithm the numbers in display must be replaced often 
-      
+
+### Data Segment Template
+First n entries - sets for the row constraint - offset of 0 bytes in memory
+Second n entries - sets for the column constraint - offset of 4n bytes in memory 
+Third n entries - sets for the region constraint - offset of 8n bytes in memory
+Total memory expenditure - 12n bytes - O(n)
+
 
 
 
