@@ -69,6 +69,31 @@ input_loop:
     move $a2, $s0
     jal set_cell
     move $s0, $v0
+
+    move $t8, $zero
+algo:
+    move $t9, $zero
+inner_algo:
+    # go through all the entries
+    # if entry is non-zero, skip to next entry
+    move $a0, $t8
+    move $a1, $t9
+    jal check_cell
+    bgt $v0,0,skip_entry
+    
+    move $a0, $v0
+    li $v0, 1
+    syscall
+
+skip_entry:
+    add $t9, $t9, 1
+    blt $t9, 4, inner_algo
+    add $t8, $t8, 1
+    blt $t8, 4, algo
+
+    li $a0, 10
+    li $v0, 11
+    syscall
     
     # print stored string
     move $t0, $zero
@@ -85,10 +110,29 @@ print_loop:
     
     addi $t0, $t0, 4 
     blt $t0,16,print_loop
-    
+
 exit:
     li $v0, 10
     syscall
+
+check_cell:
+    # a0, a1 is the row and column 
+    # v0 returns 0 if the char is zero char, 1 if otherwise
+    move $t0, $a0
+    move $t1, $a1
+    sll  $t0, $t0, 2       # t0 = t0 * 4
+
+    addu  $t0, $t0, $gp    # go to the target row string base address
+    lw    $t0, 0($t0)      # get base address value from pointer
+    la    $t0, 0($t0)
+    addu  $t1, $t0, $t1    # t1 = t0 + t1
+    lbu   $t2, 0($t1)      # v0 = mem[t1]
+    subiu $t2, $t2, 48
+    beqz  $t2, check_end
+    li    $t2, 1
+check_end:
+    move $v0, $t2
+    jr $ra
 
 set_cell:
     # a0, a1, a2 are row, column, and value respectively in int
@@ -97,7 +141,6 @@ set_cell:
     move $t2, $a2
 
     sll $t0, $t0, 2      # t0 = t0 * 8
-    #sll $t1, $t1, 2
     addu $t2, $t2, 48    # convert value to ascii equivalent
 
     addu $t0, $t0, $gp   # go to the target row string base address
