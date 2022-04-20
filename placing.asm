@@ -50,10 +50,6 @@ input_loop:
     li $v0, 8
     syscall
     
-    li $a0, 10
-    li $v0, 11
-    syscall
-    
     addi $t0, $t0, 4 
     blt $t0,16,input_loop
 
