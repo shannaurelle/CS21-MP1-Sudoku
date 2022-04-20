@@ -98,6 +98,7 @@ print_loop:
 exit:
     li $v0, 10
     syscall
+    
 .data
     string: .space 8    # reserve 8 bytes into memory
     row_1:  .space 8
