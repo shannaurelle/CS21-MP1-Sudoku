@@ -70,7 +70,7 @@ input_loop:
     # unset it again
     li $a0, 1
     li $a1, 1
-    subiu $a2, $s0, 48
+    move $a2, $s0
     jal set_cell
     move $s0, $v0
     
@@ -100,16 +100,17 @@ set_cell:
     move $t1, $a1
     move $t2, $a2
 
-    sll $t0, $t0, 2     # t0 = t0 * 8
+    sll $t0, $t0, 2      # t0 = t0 * 8
     #sll $t1, $t1, 2
     addu $t2, $t2, 48    # convert value to ascii equivalent
 
     addu $t0, $t0, $gp   # go to the target row string base address
-    lw $t0, 0($t0)      # get base address value from pointer
+    lw $t0, 0($t0)       # get base address value from pointer
     la $t0, 0($t0)
     addu $t1, $t0, $t1   # t1 = t0 + t1
-    lbu $v0, 0($t1)     # v0 = mem[t1]
-    sb $t2, 0($t1)      # t2 = mem[t1]
+    lbu $v0, 0($t1)      # v0 = mem[t1]
+    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer
+    sb $t2, 0($t1)       # t2 = mem[t1]
     
     move $t0, $zero
     move $t1, $zero
