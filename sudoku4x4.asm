@@ -360,7 +360,6 @@ accumulate:
     addu $t2, $t2, $t1
     addu $t0, $t0, 4
     blt $t0,48,accumulate
-
     
     bne $t2,300,sudoku_recurse
     jal print_board
