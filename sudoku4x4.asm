@@ -64,6 +64,10 @@ input_loop:
     li $v0, 11
     syscall
     
+    
+    li $a0, 4
+    li $a1, 4
+    jal create_sets
     # print stored string
     move $t0, $zero
 print_loop:
@@ -83,6 +87,109 @@ print_loop:
 exit:
     li $v0, 10
     syscall
+
+get_cell:
+    # a0, a1 are row and column respectively in int
+    # v0 is the value of the cell
+    move $t0, $a0
+    move $t1, $a1
+
+    sll $t0, $t0, 2      # t0 = t0 * 4
+
+    addu $t0, $t0, $gp   # go to the target row string base address
+    lw $t0, 0($t0)       # get base address value from pointer
+    la $t0, 0($t0)
+    addu $t1, $t0, $t1   # t1 = t0 + t1
+    lbu $v0, 0($t1)      # v0 = mem[t1]
+    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer)
+    
+    move $t0, $zero
+    move $t1, $zero
+    move $t2, $zero
+    jr $ra
+
+# 4x4 sets' offsets (row,col,region) : (16,32,48)
+# 9x9 sets' offsets (row,col,region) : (36,72,108)
+insert_to_set:
+    # a0, a1, a2, are row, col, and value in int respectively
+    move $t0, $a0
+    move $t1, $a1
+    move $t2, $a2
+    move $t3, $zero
+    move $t4, $zero
+    move $t5, $zero
+
+    # get_region
+    srl $t3, $t0, 1      # t3 = t0 / 2
+    and $t3, $t3, 1      # t3 = t3 % 2
+    sll $t3, $t3, 1      # t3 = t3 * 2
+    srl $t4, $t1, 1      # t4 = t1 / 2
+    add $t3, $t3, $t4    # t3 = t3 + t4
+
+    sll $t0, $t0, 2      # t0 = t0 * 4
+    sll $t1, $t1, 2      # t1 = t1 * 4
+    sll $t3, $t3, 2      # t3 = t3 * 4
+
+    addu $t0, $t0, $gp   # row offset address
+    addu $t1, $t1, $gp   # column offset address
+    addu $t3, $t3, $gp   # region offset address
+
+    subi $t2, $t2, 1     # t3 = t3 - 1
+    li   $t4, 1          # t4 = 1 
+    sllv $t4, $t4, $t2   # t4 = t4 * 2 ** (t2) 
+
+    lw $t0, 16($t0)      # get base address value from row global
+    lw $t5, 0($t0)       # load value from base address
+    or $t5, $t4, $t5     # get logical or
+    sw $t5, 0($t0)       # store result
+
+    lw $t1, 32($t1)      # get base address value from row global
+    lw $t5, 0($t1)       # load value from base address
+    or $t5, $t4, $t5     # get logical or
+    sw $t5, 0($t1)       # store result
+
+    lw $t3, 48($t3)      # get base address value from row global
+    lw $t5, 0($t3)       # load value from base address
+    or $t5, $t4, $t5     # get logical or
+    sw $t5, 0($t3)       # store result
+
+    move $v0, $t0
+    jr $ra
+
+create_sets:
+    # a0 is the number of rows
+    # a1 is the number of columns
+    move $s0, $a0
+    move $s1, $a1
+    move $s2, $ra
+    move $t0, $zero
+row_loop:
+    move $t1, $zero
+col_loop:
+    move $a0, $t0
+    move $a1, $t1
+    move $s3, $t0
+    move $s4, $t1
+    jal  get_cell
+    move $t0, $s3
+    move $t1, $s4
+    move $a2, $v0
+    beqz  $a2, col_skip
+    jal  insert_to_set
+    move $t0, $s3
+    move $t1, $s4 
+    addu $t1, $t1, 1
+    blt  $t1, $s1, col_loop
+col_skip:
+    addu $t0, $t0, 1
+    blt  $t0, $s0, row_loop
+    move $ra, $s2
+    move $s0, $zero
+    move $s1, $zero
+    move $s2, $zero
+    move $s3, $zero
+    move $s4, $zero
+    jr $ra
 
 .data
     row_1:  .space 5
