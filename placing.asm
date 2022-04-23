@@ -140,7 +140,7 @@ set_cell:
     move $t1, $a1
     move $t2, $a2
 
-    sll $t0, $t0, 2      # t0 = t0 * 8
+    sll $t0, $t0, 2      # t0 = t0 * 4
     addu $t2, $t2, 48    # convert value to ascii equivalent
 
     addu $t0, $t0, $gp   # go to the target row string base address
@@ -148,8 +148,28 @@ set_cell:
     la $t0, 0($t0)
     addu $t1, $t0, $t1   # t1 = t0 + t1
     lbu $v0, 0($t1)      # v0 = mem[t1]
-    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer
+    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer for next backtrack)
     sb $t2, 0($t1)       # t2 = mem[t1]
+    
+    move $t0, $zero
+    move $t1, $zero
+    move $t2, $zero
+    jr $ra
+
+get_cell:
+    # a0, a1 are row and column respectively in int
+    # v0 is the value of the cell
+    move $t0, $a0
+    move $t1, $a1
+
+    sll $t0, $t0, 2      # t0 = t0 * 4
+
+    addu $t0, $t0, $gp   # go to the target row string base address
+    lw $t0, 0($t0)       # get base address value from pointer
+    la $t0, 0($t0)
+    addu $t1, $t0, $t1   # t1 = t0 + t1
+    lbu $v0, 0($t1)      # v0 = mem[t1]
+    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer)
     
     move $t0, $zero
     move $t1, $zero
