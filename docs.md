@@ -56,7 +56,7 @@ The solution for the sudoku is as follows:
 1. Try a cell in the sudoku board with a zero
 2. Replace the zero with a number from 1 to n (n here can be 4 or 9)
 3. If the new cell still follow the rules, go to step 1 
-4. If the cell doesnt follow the rules, replace it with zero (backtrack) and go to step 2
+4. If the cell doesnt follow the rules, replace it with previous number (backtrack) and go to step 2
 5. If all possible trials were done and there is still no solution, print no solution
 
 For representing this in a computer here are the following approaches:
