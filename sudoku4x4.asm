@@ -43,8 +43,19 @@ main:
     la $t0, region_set_4
     sw $t0, 60($gp)
 
+    # duplicate for old board
+    la $t0, old_row_1
+    sw $t0, 64($gp)
+    la $t0, old_row_2
+    sw $t0, 68($gp)
+    la $t0, old_row_3
+    sw $t0, 72($gp)
+    la $t0, old_row_4
+    sw $t0, 76($gp)
+
     # get input string
     move $t0, $zero
+    
 input_loop:
     addu $t1, $t0, $gp 
     lw $t1, 0($t1)
@@ -52,13 +63,23 @@ input_loop:
     li $a1, 5 
     li $v0, 8
     syscall
-    
+    move $t2, $zero
+copy_loop:
+    add $t3, $t1, $t2  
+    lbu $t4, 0($t3)    # copy from input string
+    sb  $t4, 64($t3)   # and save to old_row, offset 64
+    addi $t3, $t3, 1 
+    blt $t3,5,copy_loop
+
     li $a0, 10
     li $v0, 11
     syscall
     
     addi $t0, $t0, 4 
     blt $t0,16,input_loop
+
+    
+
 
     li $a0, 10
     li $v0, 11
@@ -114,7 +135,27 @@ get_cell:
     sll $t0, $t0, 2      # t0 = t0 * 4
 
     addu $t0, $t0, $gp   # go to the target row string base address
-    lw $t0, 0($t0)       # get base address value from pointer
+    lw $t0, 0($t0)      # get base address value from pointer
+    la $t0, 0($t0)
+    addu $t1, $t0, $t1   # t1 = t0 + t1
+    lbu $v0, 0($t1)      # v0 = mem[t1]
+    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer)
+    
+    move $t0, $zero
+    move $t1, $zero
+    move $t2, $zero
+    jr $ra
+
+get_old_cell:
+    # a0, a1 are row and column respectively in int
+    # v0 is the value of the cell
+    move $t0, $a0
+    move $t1, $a1
+
+    sll $t0, $t0, 2      # t0 = t0 * 4
+
+    addu $t0, $t0, $gp   # go to the target row string base address
+    lw $t0, 64($t0)      # get base address value from pointer
     la $t0, 0($t0)
     addu $t1, $t0, $t1   # t1 = t0 + t1
     lbu $v0, 0($t1)      # v0 = mem[t1]
@@ -351,6 +392,7 @@ sudoku:
     move $t0, $zero
     move $t1, $zero
     move $t2, $zero
+    move $t3, $zero
 # base case
     beq $a0,4,sudoku_end
     beq $a1,4,sudoku_end
@@ -367,7 +409,7 @@ accumulate:
 sudoku_recurse:
     move $s3, $zero
 
-    jal get_cell
+    jal get_old_cell
     move $a2, $v0
     jal check_cell
     lw $a2, 12($sp)
@@ -383,13 +425,12 @@ skip_cell:
     addiu $a1, $a1, 1   # col = col + 1
     jal sudoku
     lw $a1, 8($sp)
-
     addiu $a2, $a2, 1    # value = value + 1 since check failed for allowed insert
     jal sudoku           
     lw $a2, 12($sp)
     j sudoku_end
 
-    jal get_cell
+    jal get_old_cell
     move $a2, $v0
     jal check_cell
     lw $a2, 12($sp)
@@ -411,6 +452,10 @@ sudoku_end:
     row_2:  .space 5
     row_3:  .space 5 
     row_4:  .space 5
+    old_row_1: .space 5
+    old_row_2: .space 5
+    old_row_3: .space 5
+    old_row_4: .space 5
     row_set_1: .space 4
     row_set_2: .space 4
     row_set_3: .space 4
@@ -424,3 +469,4 @@ sudoku_end:
     region_set_3: .space 4
     region_set_4: .space 4
     no_solution: .asciiz "NO SOLUTION"
+    
