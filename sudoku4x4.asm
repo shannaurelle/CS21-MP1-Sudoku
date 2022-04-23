@@ -71,7 +71,7 @@ input_loop:
 
     move $a0, $zero
     move $a1, $zero
-    move $a2, $zero 
+    li $a2, 1 
     jal sudoku
 
     la $a0, no_solution
@@ -372,25 +372,30 @@ sudoku_recurse:
     move $a2, $v0
     jal check_cell
     lw $a2, 12($sp)
+    bnez $v0,skip_cell 
 
-    bnez $v0,skip_cell
-    addiu $a2, $a2, 1   # value = value + 1
-    jal sudoku
-    lw $a2, 12($sp)
-skip_cell:
-    jal check_set
-    bnez $v0, sudoku_end 
     jal set_cell
-    move $s3, $v0       # s3 = former cell
+    move $s3, $v0        # s3 = former cell
     jal insert_to_set
-
+skip_cell:
     addiu $a0, $a0, 1   # row = row + 1
     jal sudoku
     lw $a0, 4($sp)
     addiu $a1, $a1, 1   # col = col + 1
     jal sudoku
     lw $a1, 8($sp)
-    
+
+    addiu $a2, $a2, 1    # value = value + 1 since check failed for allowed insert
+    jal sudoku           
+    lw $a2, 12($sp)
+    j sudoku_end
+
+    jal get_cell
+    move $a2, $v0
+    jal check_cell
+    lw $a2, 12($sp)
+    bnez $v0,sudoku_end 
+
     jal delete_to_set
     move $a2, $s3
     jal insert_to_set      # backtrack
