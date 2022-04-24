@@ -43,16 +43,6 @@ main:
     la $t0, region_set_4
     sw $t0, 60($gp)
 
-    # duplicate for old board
-    la $t0, old_row_1
-    sw $t0, 64($gp)
-    la $t0, old_row_2
-    sw $t0, 68($gp)
-    la $t0, old_row_3
-    sw $t0, 72($gp)
-    la $t0, old_row_4
-    sw $t0, 76($gp)
-
     # get input string
     move $t0, $zero
     
@@ -136,26 +126,6 @@ get_cell:
 
     addu $t0, $t0, $gp   # go to the target row string base address
     lw $t0, 0($t0)      # get base address value from pointer
-    la $t0, 0($t0)
-    addu $t1, $t0, $t1   # t1 = t0 + t1
-    lbu $v0, 0($t1)      # v0 = mem[t1]
-    subiu $v0, $v0, 48   # v0 = v0 - 48 (now stored as integer)
-    
-    move $t0, $zero
-    move $t1, $zero
-    move $t2, $zero
-    jr $ra
-
-get_old_cell:
-    # a0, a1 are row and column respectively in int
-    # v0 is the value of the cell
-    move $t0, $a0
-    move $t1, $a1
-
-    sll $t0, $t0, 2      # t0 = t0 * 4
-
-    addu $t0, $t0, $gp   # go to the target row string base address
-    lw $t0, 64($t0)      # get base address value from pointer
     la $t0, 0($t0)
     addu $t1, $t0, $t1   # t1 = t0 + t1
     lbu $v0, 0($t1)      # v0 = mem[t1]
@@ -387,7 +357,6 @@ sudoku:
     sw $ra, 0($sp)  # 
     sw $a0, 4($sp)
     sw $a1, 8($sp)
-    sw $a2, 12($sp)
     ### PREAMBLE ###
     move $t0, $zero
     move $t1, $zero
@@ -396,50 +365,38 @@ sudoku:
 # base case
     beq $a0,4,sudoku_end
     beq $a1,4,sudoku_end
-    beq $a2,5,sudoku_end
 accumulate:
-    lw $t1, row_set_1($t0)
+    lb $t1, row_1($t0)
+    beqz $t1, skip_add
     addu $t2, $t2, $t1
-    addu $t0, $t0, 4
-    blt $t0,48,accumulate
-    
-    bne $t2,300,sudoku_recurse
+skip_add:
+    addu $t0, $t0, 1
+    blt $t0,20,accumulate
+    subu $t2, $t2, 768
+    bne $t2,40,sudoku_recurse
     jal print_board
     j exit
 sudoku_recurse:
     move $s3, $zero
 
-    jal get_old_cell
-    move $a2, $v0
-    jal check_cell
-    lw $a2, 12($sp)
+    jal check_set
     bnez $v0,skip_cell 
-
     jal set_cell
-    move $s3, $v0        # s3 = former cell
-    jal insert_to_set
+    move $s3, $v0
 skip_cell:
-    addiu $a0, $a0, 1   # row = row + 1
-    jal sudoku
-    lw $a0, 4($sp)
     addiu $a1, $a1, 1   # col = col + 1
     jal sudoku
     lw $a1, 8($sp)
-    addiu $a2, $a2, 1    # value = value + 1 since check failed for allowed insert
-    jal sudoku           
-    lw $a2, 12($sp)
-    j sudoku_end
-
-    jal get_old_cell
-    move $a2, $v0
-    jal check_cell
-    lw $a2, 12($sp)
-    bnez $v0,sudoku_end 
-
-    jal delete_to_set
-    move $a2, $s3
-    jal insert_to_set      # backtrack
+    addiu $a0, $a0, 1   # row = row + 1
+    jal sudoku
+    lw $a0, 4($sp)
     
+
+    jal check_set
+    bnez $v0,sudoku_end
+    lw $a2, 12($sp)
+    jal set_cell      # backtrack
+
 sudoku_end:
     ### END ###
     lw $ra, 0($sp)
@@ -452,10 +409,6 @@ sudoku_end:
     row_2:  .space 5
     row_3:  .space 5 
     row_4:  .space 5
-    old_row_1: .space 5
-    old_row_2: .space 5
-    old_row_3: .space 5
-    old_row_4: .space 5
     row_set_1: .space 4
     row_set_2: .space 4
     row_set_3: .space 4
@@ -468,5 +421,6 @@ sudoku_end:
     region_set_2: .space 4
     region_set_3: .space 4
     region_set_4: .space 4
+    safe_set:     .space 16
     no_solution: .asciiz "NO SOLUTION"
     
