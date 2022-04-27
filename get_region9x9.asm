@@ -17,7 +17,7 @@ test_column:
     # function proper
     move $a0, $s0
     move $a1, $s1
-    jal get_region_4x4
+    jal get_region_9x9
 
     # print result
     move $a0, $v0
@@ -35,7 +35,7 @@ test_column:
     ble $s0, 8, test_row
     
     j exit
-get_region_4x4:
+get_region_9x9:
     move $t0, $a0
     move $t1, $a1
     div $t0, $t0, 3   # t0 = t0 / 3
