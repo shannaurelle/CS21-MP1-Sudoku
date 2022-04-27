@@ -8,13 +8,16 @@ sudoku:
     sw $a2, 12($sp)
     ### PREAMBLE ###
     # base case
-    bge $a1, 4, sudoku_end
-    bge $a0, 4, sudoku_end
+    # if row == 3 and col == 4 stop
+    mul $t2, $a0, $a1
+    beq $t2, 12, sudoku_end      
+
+    blt $a1, 4, sudoku_recurse
+    move $a1, $zero
+    addiu $a0, $a0, 1
+
 sudoku_recurse:
     jal get_cell
-    move $a2, $v0
-    jal check_cell
-    
     bnez $v0, skip_cell    # if cell is not zero, skip cell
     # else : cell is zero
     li $a2, 1
@@ -31,17 +34,14 @@ sudoku_value_loop:
     
     jal sudoku_check
 
-    # addiu $a0, $a0, 1   # row = row + 1
+    # start from the beginning
     move $a0, $zero
     move $a1, $zero
     jal sudoku
     lw $a0, 4($sp)
     lw $a1, 8($sp)
     lw $a2, 12($sp)
-    # addiu $a1, $a1, 1   # col = col + 1
-    # jal sudoku
-    # lw $a1, 8($sp)
-    lw $a2, 12($sp)
+    
     ### backtrack ###
     move $s2, $a2
     jal delete_to_set      
@@ -59,9 +59,6 @@ skip_cell:
     addiu $a1, $a1, 1   # col = col + 1
     jal sudoku
     lw $a1, 8($sp)
-    addiu $a0, $a0, 1   # row = row + 1
-    jal sudoku
-    lw $a0, 4($sp)
 
 sudoku_end:
     ### END ###
