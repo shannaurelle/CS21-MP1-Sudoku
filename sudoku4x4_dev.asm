@@ -448,7 +448,7 @@ sudoku_recurse:
     # else : cell is zero
     li $a2, 1
 sudoku_value_loop:
-    
+    jal debug
     sw $a2, 12($sp)
 
     jal check_set
@@ -460,7 +460,9 @@ sudoku_value_loop:
 
     jal place
 
-    # start from current position
+    # start from the beginning
+    # move $a0, $zero
+    # move $a1, $zero
     jal sudoku
     lw $a0, 4($sp)
     lw $a1, 8($sp)
@@ -474,7 +476,7 @@ sudoku_value_loop:
     move $a2, $s2  
     move $s2, $zero
     ### backtrack ###
-    
+    jal unplace
 next_value:
     # next value pls
     addiu $a2, $a2, 1
@@ -496,6 +498,117 @@ sudoku_end:
 sudoku_exit:
     jr $ra
 
+debug:
+    ### PREAMBLE ###
+    subiu $sp, $sp, 4
+    sw $ra, 0($sp)
+    ### PREAMBLE ###
+    # print row
+    move $a0, $a0
+    li $v0, 1
+    syscall 
+
+    move $s0, $a0
+    li $a0, 32
+    li $v0, 11
+    syscall
+    move $a0, $s0 
+
+    move $s0, $a0
+    move $a0, $a1
+    li $v0, 1
+    syscall
+    move $a0, $s0
+
+    move $s0, $a0
+    li $a0, 32
+    li $v0, 11
+    syscall
+    move $a0, $s0
+
+    move $s0, $a0
+    move $a0, $a2
+    li $v0, 1
+    syscall
+    move $a0, $s0
+
+    move $s0, $a0
+    li $a0, 10
+    li $v0, 11
+    syscall
+    move $a0, $s0
+
+    move $s0, $zero
+    move $v0, $zero
+    ### END ###
+    lw $ra, 0($sp)
+    addiu $sp, $sp, 4
+    ### END ###
+    jr $ra
+
+place:
+    ### PREAMBLE ###
+    subiu $sp, $sp, 4
+    sw $ra, 0($sp)
+    ### PREAMBLE ###
+    move $s0, $a0
+    move $a0, $a2
+    li $v0, 1
+    syscall
+    move $a0, $s0
+    move $s0, $zero
+
+    move $s0, $a0
+    li $a0, 32
+    li $v0, 11
+    syscall
+    move $a0, $s0
+    move $s0, $zero
+
+    move $s0, $a0
+    la $a0, placed
+    li $v0, 4
+    syscall
+    move $a0, $s0
+    move $s0, $zero
+    move $v0, $zero
+    ### END ###
+    lw $ra, 0($sp)
+    addiu $sp, $sp, 4
+    ### END ###
+    jr $ra
+
+unplace:
+    ### PREAMBLE ###
+    subiu $sp, $sp, 4
+    sw $ra, 0($sp)
+    ### PREAMBLE ###
+    move $s0, $a0
+    move $a0, $a2
+    li $v0, 1
+    syscall
+    move $a0, $s0
+    move $s0, $zero
+
+    move $s0, $a0
+    li $a0, 32
+    li $v0, 11
+    syscall
+    move $a0, $s0
+    move $s0, $zero
+
+    move $s0, $a0
+    la $a0, removed
+    li $v0, 4
+    syscall
+    move $a0, $s0
+    move $s0, $zero
+    move $v0, $zero
+    ### END ###
+    lw $ra, 0($sp)
+    addiu $sp, $sp, 4
+    ### END ###
+    jr $ra
 .data
     row_1:  .space 12
     row_2:  .space 12
