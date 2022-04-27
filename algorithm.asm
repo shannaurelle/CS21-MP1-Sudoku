@@ -31,13 +31,16 @@ sudoku_value_loop:
     
     jal sudoku_check
 
-    addiu $a0, $a0, 1   # row = row + 1
+    # addiu $a0, $a0, 1   # row = row + 1
+    move $a0, $zero
+    move $a1, $zero
     jal sudoku
     lw $a0, 4($sp)
-    lw $a2, 12($sp)
-    addiu $a1, $a1, 1   # col = col + 1
-    jal sudoku
     lw $a1, 8($sp)
+    lw $a2, 12($sp)
+    # addiu $a1, $a1, 1   # col = col + 1
+    # jal sudoku
+    # lw $a1, 8($sp)
     lw $a2, 12($sp)
     ### backtrack ###
     move $s2, $a2
