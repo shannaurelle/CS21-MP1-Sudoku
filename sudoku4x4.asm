@@ -53,13 +53,6 @@ input_loop:
     li $a1, 5 
     li $v0, 8
     syscall
-    move $t2, $zero
-copy_loop:
-    add $t3, $t1, $t2  
-    lbu $t4, 0($t3)    # copy from input string
-    sb  $t4, 64($t3)   # and save to old_row, offset 64
-    addi $t3, $t3, 1 
-    blt $t3,5,copy_loop
 
     li $a0, 10
     li $v0, 11
@@ -67,9 +60,6 @@ copy_loop:
     
     addi $t0, $t0, 4 
     blt $t0,16,input_loop
-
-    
-
 
     li $a0, 10
     li $v0, 11
@@ -79,15 +69,33 @@ copy_loop:
     li $a0, 4
     li $a1, 4
     jal create_sets
-
+    
     move $a0, $zero
     move $a1, $zero
-    li $a2, 1 
     jal sudoku
 
     la $a0, no_solution
     li $v0, 4
     syscall
+    # diagnostic functions 
+    li $a0, 10
+    li $v0, 11
+    syscall
+
+    li $t0, 0
+    sets_loop:
+    mul $t2, $t0, 4
+    lw $t1, row_set_1($t2)
+    move $a0, $t1
+    li $v0, 1
+    syscall
+
+    li $a0, 10
+    li $v0, 11
+    syscall
+
+    addu $t0, $t0, 1
+    blt $t0,12,sets_loop
 
     li $a0, 10
     li $v0, 11
@@ -184,7 +192,7 @@ insert_to_set:
     addu $t1, $t1, $gp   # column offset address
     addu $t3, $t3, $gp   # region offset address
 
-    subi $t2, $t2, 1     # t3 = t3 - 1
+    subi $t2, $t2, 1     # t2 = t2 - 1
     li   $t4, 1          # t4 = 1 
     sllv $t4, $t4, $t2   # t4 = t4 * 2 ** (t2) 
 
@@ -219,7 +227,7 @@ delete_to_set:
     and $t3, $t3, 1      # t3 = t3 % 2
     sll $t3, $t3, 1      # t3 = t3 * 2
     srl $t4, $t1, 1      # t4 = t1 / 2
-    add $t3, $t3, $t4    # t3 = t3 + t4
+    addu $t3, $t3, $t4   # t3 = t3 + t4
 
     sll $t0, $t0, 2      # t0 = t0 * 4
     sll $t1, $t1, 2      # t1 = t1 * 4
@@ -231,21 +239,22 @@ delete_to_set:
 
     subi $t2, $t2, 1     # t3 = t3 - 1
     li   $t4, 1          # t4 = 1 
-    sllv $t4, $t4, $t2   # t4 = t4 * 2 ** (t2) 
+    sllv $t4, $t4, $t2   # t4 = t4 * 2 ** (t2)
+    not  $t4, $t4        # get opposite bitmask
 
     lw   $t0, 16($t0)      # get base address value from row global
     lw   $t5, 0($t0)       # load value from base address
-    subu $t5, $t4, $t5     # get logical or
+    and  $t5, $t4, $t5     # get logical or
     sw   $t5, 0($t0)       # store result
 
     lw   $t1, 32($t1)      # get base address value from row global
     lw   $t5, 0($t1)       # load value from base address
-    subu $t5, $t4, $t5     # get logical or
+    and  $t5, $t4, $t5     # remove bit 
     sw   $t5, 0($t1)       # store result
 
     lw   $t3, 48($t3)      # get base address value from row global
     lw   $t5, 0($t3)       # load value from base address
-    subu $t5, $t4, $t5     # get logical or
+    and  $t5, $t4, $t5     # remove bit 
     sw   $t5, 0($t3)       # store result
 
     jr $ra
@@ -256,33 +265,27 @@ create_sets:
     move $s0, $a0
     move $s1, $a1
     move $s2, $ra
-    move $t0, $zero
+    move $a0, $zero
 row_loop:
-    move $t1, $zero
+    move $a1, $zero
 col_loop:
-    move $a0, $t0
-    move $a1, $t1
-    move $s3, $t0
-    move $s4, $t1
     jal  get_cell
-    move $t0, $s3
-    move $t1, $s4
+    beqz $v0, col_skip
     move $a2, $v0
-    beqz  $a2, col_skip
     jal  insert_to_set
-    move $t0, $s3
-    move $t1, $s4 
-    addu $t1, $t1, 1
-    blt  $t1, $s1, col_loop
-col_skip:
-    addu $t0, $t0, 1
-    blt  $t0, $s0, row_loop
-    move $ra, $s2
+col_skip:    
+    addu $a1, $a1, 1
+    blt  $a1, 4, col_loop
+
+    addu $a0, $a0, 1
+    blt  $a0, 4, row_loop
+
+    move $a0, $s0
+    move $a1, $s1
+
     move $s0, $zero
     move $s1, $zero
-    move $s2, $zero
-    move $s3, $zero
-    move $s4, $zero
+    move $ra, $s2
     jr $ra
 
 check_cell:
@@ -350,65 +353,106 @@ check_set_end:
     move $v0, $t0
     jr $ra
 
+sudoku_check:
+    # test for correct solution: 15 row value for 4x4 and 511 for 9x9
+    # number of rows: 12 for 4x4 and 27 for 9x9 
+    move $t0, $zero
+
+sudoku_check_loop:
+
+    sll   $t2, $t0, 2  # t0 = t0 * 4
+    lw    $t1, row_set_1($t2)
+    bne   $t1, 15, sudoku_check_fail
+    addiu $t0, $t0, 1
+    blt   $t0, 12, sudoku_check_loop
+    # solution is correct, print the result
+    jal print_board
+    j exit
+
+sudoku_check_fail:
+    jr $ra
+
 # a0, a1, a2, (row, column, value)
 sudoku:
     ### PREAMBLE ###
     subu $sp, $sp, 16
-    sw $ra, 0($sp)  # 
+    sw $ra, 0($sp)
     sw $a0, 4($sp)
     sw $a1, 8($sp)
+    sw $a2, 12($sp)
     ### PREAMBLE ###
-    move $t0, $zero
-    move $t1, $zero
-    move $t2, $zero
-    move $t3, $zero
-# base case
-    beq $a0,4,sudoku_end
-    beq $a1,4,sudoku_end
-accumulate:
-    lb $t1, row_1($t0)
-    beqz $t1, skip_add
-    addu $t2, $t2, $t1
-skip_add:
-    addu $t0, $t0, 1
-    blt $t0,20,accumulate
-    subu $t2, $t2, 768
-    bne $t2,40,sudoku_recurse
-    jal print_board
-    j exit
+# base cases
+    bne $a0,3,sudoku_recurse
+    bne $a1,4,sudoku_recurse
+    jal sudoku_check
+    j sudoku_end
+    
 sudoku_recurse:
-    move $s3, $zero
+    blt $a0, 4, col_done
+    move $a1, $zero
+    addiu $a0, $a0, 1
+
+col_done:
+    jal get_cell
+    move $a2, $v0
+    jal check_cell
+    lw $a2, 12($sp)
+
+    bnez $v0,skip_cell     # if cell is not zero, skip cell
+    # else : cell is zero
+    li $a2, 1
+try_value:
+    sw $a2, 12($sp)
 
     jal check_set
-    bnez $v0,skip_cell 
+    # lw $ra, 0($sp)
+    bnez $v0, next_value   # if value cant be placed, try another
+    
     jal set_cell
-    move $s3, $v0
-skip_cell:
+    # lw $ra, 0($sp)
+
+    jal insert_to_set
+    # lw $ra, 0($sp)
+    
     addiu $a1, $a1, 1   # col = col + 1
     jal sudoku
-    lw $a1, 8($sp)
-    addiu $a0, $a0, 1   # row = row + 1
-    jal sudoku
-    lw $a0, 4($sp)
-    
 
-    jal check_set
-    bnez $v0,sudoku_end
+    ### backtrack ###
+    # lw $ra, 0($sp)
+    # lw $a0, 4($sp)
+    lw $a1, 8($sp)
     lw $a2, 12($sp)
-    jal set_cell      # backtrack
+    jal delete_to_set      
+    move $a2, $zero
+    jal set_cell
+    lw $a2, 12($sp)  
+    ### backtrack ###
+next_value:
+    # next value pls
+    addu $a2, $a2, 1
+    blt $a2, 5, try_value
+    j sudoku_end
+skip_cell:
+    
+    addiu $a1, $a1, 1   # col = col + 1
+    jal sudoku
 
 sudoku_end:
     ### END ###
     lw $ra, 0($sp)
+    lw $a0, 4($sp)
+    lw $a1, 8($sp)
+    lw $a2, 12($sp)
     addu $sp, $sp, 16
     ### END ###
+sudoku_exit:
     jr $ra
 
 .data
-    row_1:  .space 5
-    row_2:  .space 5
-    row_3:  .space 5 
-    row_4:  .space 5
+    row_1:  .space 12
+    row_2:  .space 12
+    row_3:  .space 12
+    row_4:  .space 12
     row_set_1: .space 4
     row_set_2: .space 4
     row_set_3: .space 4
@@ -421,6 +465,5 @@ sudoku_end:
     region_set_2: .space 4
     region_set_3: .space 4
     region_set_4: .space 4
-    safe_set:     .space 16
     no_solution: .asciiz "NO SOLUTION"
     
