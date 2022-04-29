@@ -458,8 +458,6 @@ sudoku_value_loop:
 
     jal insert_to_set
 
-    jal place
-
     # start from current position
     jal sudoku
     lw $a0, 4($sp)
@@ -479,7 +477,7 @@ next_value:
     # next value pls
     addiu $a2, $a2, 1
     blt $a2, 5, sudoku_value_loop
-    j sudoku_end    # no value possible, end
+    j sudoku_end        # no value possible, end
 skip_cell:
     addiu $a1, $a1, 1   # col = col + 1
     jal sudoku
