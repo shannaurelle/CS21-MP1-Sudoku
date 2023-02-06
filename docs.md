@@ -77,10 +77,11 @@ For representing this in a computer here are the following approaches:
 - So during the algorithm the numbers in display must be replaced often 
 
 ### Data Segment Template
-First n entries - sets for the row constraint - offset of 0 bytes in memory
-Second n entries - sets for the column constraint - offset of 4n bytes in memory 
-Third n entries - sets for the region constraint - offset of 8n bytes in memory
-Total memory expenditure - 12n bytes - O(n)
+
+- First n entries - sets for the row constraint - offset of 0 bytes in memory
+- Second n entries - sets for the column constraint - offset of 4n bytes in memory 
+- Third n entries - sets for the region constraint - offset of 8n bytes in memory
+- Total memory expenditure - 12n bytes - O(n)
 
 
 
