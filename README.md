@@ -1,5 +1,5 @@
 # Sodoku Solver on MIPS
-A MIPS implementation of a sudoku solver
+A MIPS implementation of a sudoku solver. For in-depth details please refer to docs.md
 
 ## Background
 This project is my final output for my course on machine language and assembly programming course. The project involves solving 4x4 sudoku boards first, then solve 9x9 sudoku board afterwards using MIPS assembly programming language. The repository contains separate solutions for 4x4 and 9x9 sudoku boards. 
