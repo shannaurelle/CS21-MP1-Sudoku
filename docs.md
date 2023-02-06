@@ -78,9 +78,9 @@ For representing this in a computer here are the following approaches:
 
 ### Data Segment Template
 
-- First n entries - sets for the row constraint - offset of 0 bytes in memory
-- Second n entries - sets for the column constraint - offset of 4n bytes in memory 
-- Third n entries - sets for the region constraint - offset of 8n bytes in memory
+- First n entries refers to sets for the row constraint with offset of 0 bytes in memory
+- Second n entries refers to sets for the column constraint with offset of 4n bytes in memory 
+- Third n entries refers to sets for the region constraint with offset of 8n bytes in memory
 - Total memory expenditure - 12n bytes - O(n)
 
 
