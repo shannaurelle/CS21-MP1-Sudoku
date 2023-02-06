@@ -81,7 +81,7 @@ For representing this in a computer here are the following approaches:
 - First n entries refers to sets for the row constraint with offset of 0 bytes in memory
 - Second n entries refers to sets for the column constraint with offset of 4n bytes in memory 
 - Third n entries refers to sets for the region constraint with offset of 8n bytes in memory
-- Total memory expenditure - 12n bytes - O(n)
+- Total memory expenditure is 12n bytes which is O(n) memory used
 
 
 
