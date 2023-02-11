@@ -24,13 +24,13 @@ documentation and video documentation included.
 
 ### Definitions and Terms
 
-Sudoku := a number puzzle where numbers are placed according to the constraints per row, column, and region
-Row := a string consisting of ascii characters of numbers
-Column := a collection of each ith character from all rows, where i is the position of the character in the string
-Region := a square which consists of characters in close proximity to each other with respect to length and width
-Bitstring := a number represented as a string of 1s and 0s 
-Solution := a sudoku where each number is present once in each row, column, and region
-Cell := a character in the sudoku board
+- Sudoku := a number puzzle where numbers are placed according to the constraints per row, column, and region
+- Row := a string consisting of ascii characters of numbers
+- Column := a collection of each ith character from all rows, where i is the position of the character in the string
+- Region := a square which consists of characters in close proximity to each other with respect to length and width
+- Bitstring := a number represented as a string of 1s and 0s 
+- Solution := a sudoku where each number is present once in each row, column, and region
+- Cell := a character in the sudoku board
 
 ## Review of Related Literature
 
