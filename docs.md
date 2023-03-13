@@ -83,7 +83,10 @@ For representing this in a computer here are the following approaches:
 - Third n entries refers to sets for the region constraint with offset of 8n bytes in memory
 - Total memory expenditure is 12n bytes which is O(n) memory used
 
+## Mars.jar command for running the project
 
+```Measure-Command { cat input.txt | java -jar 'Mars.jar' sm nc '202010670_4.asm' | Out-Default } ``
+```Measure-Command { cat input2.txt | java -jar 'Mars.jar' sm nc '202010670_9.asm' | Out-Default } ``
 
 
 
